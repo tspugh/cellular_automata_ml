@@ -1,0 +1,1 @@
+class NoneCellException(Exception): pass
