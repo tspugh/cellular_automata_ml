@@ -1,5 +1,6 @@
-from models.automata_models.error_types import NoneCellException
 from typing import Generic, TypeVar, Any
+
+from models.automata_models.error_types import NoneCellException
 
 # generic type for GenericCell
 T = TypeVar("T")
@@ -20,6 +21,8 @@ class GenericCell(Generic[T]):
 		self._value = value
 		if position < 0:
 			self.position = -1
+		else:
+			self.position = position
 
 	def get_value(self) -> T:
 		"""
@@ -35,7 +38,7 @@ class GenericCell(Generic[T]):
 		:param value: The new value for the cell
 		:return: Whether the value was accepted
 		"""
-		if self.accepts_value(value):
+		if self._value is None or self.accepts_value(value):
 			self._value = value
 			return True
 		return False
