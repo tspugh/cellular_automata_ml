@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="executionMode" value="BINARY" />
+    <option name="pathToExecutable" value="/Library/Anaconda/anaconda3/bin/black" />
+    <option name="sdkUUID" value="02095a0f-08d9-485f-b7c8-9d422bfda4ed" />
+  </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (cellular-automata-ml)" project-jdk-type="Python SDK" />
 </project>
