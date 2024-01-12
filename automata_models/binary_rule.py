@@ -4,6 +4,11 @@ import numpy as np
 from math import log2
 
 
+LINEAR_BINARY_RULE_SPECIFIER = "bl"
+
+EDGE_CASE_RANDOM = "random"
+EDGE_CASE_PERIODIC = "periodic"
+
 # https://stackoverflow.com/questions/1835018/how-to-check-if-an-object-is-a-list-or-tuple-but-not-string
 def is_sequence(arg):
     return not hasattr(arg, "strip") and (
@@ -49,9 +54,10 @@ class BinaryLin3Rule:
     rule_size = 3
     rule_base_length = 8
 
-    def __init__(self, edge_case="random"):
+    def __init__(self, edge_case=EDGE_CASE_RANDOM):
         self.edge_case = None
         self.convert_with_rule = None
+        self.rule_str = None
 
         if is_binary(edge_case):
             self.edge_case = [edge_case, edge_case]
@@ -59,37 +65,51 @@ class BinaryLin3Rule:
         if is_linear_binary_edge_case(edge_case) and len(edge_case) == 2:
             self.edge_case = list(edge_case)
 
-        self.random_edge_case = edge_case == "random"
-        self.periodic_edge_case = edge_case == "periodic"
+        self.random_edge_case = edge_case == EDGE_CASE_RANDOM
+        self.periodic_edge_case = edge_case == EDGE_CASE_PERIODIC
 
         if (
             not self.random_edge_case
-            or not self.periodic_edge_case
-            or self.edge_case is None
+            and not self.periodic_edge_case
+            and self.edge_case is None
         ):
             raise ValueError(
                 'Edge case must be either 1, 0, a list of 2, "random", or "periodic"'
             )
 
-    def set_rule_from_integer(self, rule_int):
-        if not 0 <= rule_int <= (2**rule_base_length - 1):
+    def __str__(self):
+        return LINEAR_BINARY_RULE_SPECIFIER + "3_" + self.get_edge_case_string() + "_" + self.rule_str
+
+    def get_edge_case_string(self):
+        if self.random_edge_case:
+            return EDGE_CASE_RANDOM
+        elif self.periodic_edge_case:
+            return EDGE_CASE_PERIODIC
+        else:
+            return "[" + ",".join([str(x) for x in self.edge_case]) + "]"
+
+    def set_rule_from_int(self, rule_int):
+        if not 0 <= rule_int <= (2**BinaryLin3Rule.rule_base_length - 1):
             raise ValueError(
-                f"Rule integer must be between 0 and {2**rule_base_length - 1}"
+                f"Rule integer must be between 0 and {2**BinaryLin3Rule.rule_base_length - 1}"
             )
 
-        return set_rule_from_string(self, bin(rule_int)[2:].zfill(rule_base_length))
+        return self.set_rule_from_string(bin(rule_int)[2:].zfill(BinaryLin3Rule.rule_base_length))
 
     def set_rule_from_string(self, rule_str):
+
+        self.rule_str = rule_str
+
         if not (isinstance(rule_str, str) and all([is_binary(x) for x in rule_str])):
             raise ValueError("Rule string must be a string of 0s and 1s")
 
-        if not len(rule_str) == rule_base_length:
-            raise ValueError(f"Rule string must be {rule_base_length} characters long")
+        if not len(rule_str) == BinaryLin3Rule.rule_base_length:
+            raise ValueError(f"Rule string must be {BinaryLin3Rule.rule_base_length} characters long")
 
         self.rules_dictionary = dict()
 
-        for i in range(len(rule_str) - 1, -1, -1):
-            self.rules_dictionary[i] = int(rule_str[i])
+        for i in range(len(rule_str)):
+            self.rules_dictionary[i] = int(rule_str[len(rule_str)-i-1])
 
         self.convert_with_rule = lambda triplet: self.rules_dictionary[
             convert_triplet_to_int(triplet)
@@ -103,7 +123,7 @@ class BinaryLin3Rule:
         if not is_sequence(initial_state) or len(initial_state) < 2:
             raise ValueError("Initial state must be a list of length at least 2")
 
-        result = np.ndarray(len(initial_state))
+        result = np.ndarray(len(initial_state), dtype=int)
         if self.random_edge_case:
             result[0] = self.convert_with_rule(
                 np.append([random.choice([0, 1])], initial_state[0:2])
